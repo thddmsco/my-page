@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>^.^의 3D 숲속 아지트 🌿</title>
+    <!-- 귀여운 한글 폰트 (Jua & Gowun Dodum) 불러오기 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+    <!-- Three.js 3D 그래픽 엔진 불러오기 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* 전체 테마 및 3D 클레이/숲속 컬러 팔레트 설정 */
+        :root {
+            --bg-top: #dcedc8;
+            --bg-bottom: #a5d6a7;
+            --card-bg: rgba(255, 255, 255, 0.88);
+            --primary-green: #4caf50;
+            --dark-green: #1b5e20;
+            --soft-green: #81c784;
+            --wood-brown: #8d6e63;
+            --wood-dark: #4e342e;
+            --accent-yellow: #ffd54f;
+            --accent-pink: #f48fb1;
+            --text-main: #263d29;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            background: linear-gradient(180deg, #b3e5fc 0%, #dcedc8 45%, #a5d6a7 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            padding-bottom: 60px;
+            perspective: 1200px;
+        }
+
+        h1, h2, h3, .font-jua {
+            font-family: 'Jua', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        /* 전체 화면 배경 3D 숲속 캔버스 */
+        #bg3dCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 마우스 & 터치 반짝이 파티클 */
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            font-size: 18px;
+            filter: drop-shadow(0 3px 4px rgba(0,0,0,0.2));
+            animation: sparkleAnim 0.8s ease-out forwards;
+        }
+
+        @keyframes sparkleAnim {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -130%) scale(1.5) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 22px 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 3D 입체 나무 팻말 헤더 */
+        header {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 42px;
+        }
+
+        .wood-sign {
+            background: linear-gradient(145deg, #a1887f 0%, #795548 100%);
+            border: 4px solid var(--wood-dark);
+            border-radius: 28px;
+            padding: 26px 22px;
+            color: #fff8e1;
+            /* 두꺼운 3D 입체 그림자 & 하이라이트 */
+            box-shadow: 
+                0 10px 0 #4e342e,
+                0 20px 30px rgba(62, 39, 35, 0.35),
+                inset 0 4px 8px rgba(255, 255, 255, 0.35);
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 620px;
+            transform: rotateX(4deg);
+            transition: transform 0.3s ease;
+        }
+
+        .wood-sign:hover {
+            transform: rotateX(0deg) translateY(-3px);
+        }
+
+        /* 3D 볼트 장식 */
+        .wood-sign::before, .wood-sign::after {
+            content: '';
+            position: absolute;
+            top: 16px;
+            width: 14px;
+            height: 14px;
+            background: radial-gradient(circle at 30% 30%, #8d6e63, #3e2723);
+            border-radius: 50%;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.5);
+        }
+        .wood-sign::before { left: 18px; }
+        .wood-sign::after { right: 18px; }
+
+        .animal-friends {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 5px 4px rgba(0,0,0,0.3));
+            animation: bounce3D 2s infinite ease-in-out;
+        }
+
+        @keyframes bounce3D {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-8px) scale(1.06); }
+        }
+
+        header h1 {
+            font-size: clamp(1.85rem, 5vw, 2.55rem);
+            text-shadow: 0 4px 0 #3e2723, 0 6px 10px rgba(0,0,0,0.3);
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 1.05rem;
+            color: #ffecb3;
+            text-shadow: 0 2px 3px rgba(0,0,0,0.3);
+        }
+
+        /* 3D 클레이 느낌의 섹션 카드 */
+        .forest-section {
+            background: var(--card-bg);
+            border-radius: 34px;
+            padding: 38px 22px 30px;
+            margin-bottom: 44px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            transition: transform 0.25s ease;
+        }
+
+        /* 3D 상단 챕터 배지 */
+        .section-badge {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 20px;
+            border-radius: 22px;
+            font-family: 'Jua', sans-serif;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        /* 섹션 1~3: 3D 숲속 그린 테마 */
+        .section-profile {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(232, 245, 233, 0.92) 100%);
+            border: 3px solid #81c784;
+            box-shadow: 
+                0 10px 0 #66bb6a,
+                0 20px 35px rgba(46, 125, 50, 0.22),
+                inset 0 4px 10px rgba(255, 255, 255, 0.9);
+        }
+
+        .section-profile .section-badge {
+            background: linear-gradient(180deg, #66bb6a 0%, #43a047 100%);
+            color: #ffffff;
+            border: 2px solid #e8f5e9;
+            box-shadow: 0 4px 0 #2e7d32, 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        /* 섹션 4: 3D 뷰티 살롱 핑크 테마 */
+        .section-salon {
+            background: linear-gradient(180deg, rgba(255, 249, 251, 0.96) 0%, rgba(252, 228, 236, 0.94) 100%);
+            border: 3px solid #f48fb1;
+            box-shadow: 
+                0 10px 0 #ec407a,
+                0 20px 35px rgba(216, 27, 96, 0.2),
+                inset 0 4px 10px rgba(255, 255, 255, 0.9);
+        }
+
+        .section-salon .section-badge {
+            background: linear-gradient(180deg, #f06292 0%, #d81b60 100%);
+            color: #ffffff;
+            border: 2px solid #fff0f5;
+            box-shadow: 0 4px 0 #ad1457, 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .section-salon .section-title { color: #ad1457; }
+        .section-salon .section-subtitle { color: #c2185b; }
+
+        /* 섹션 5: 3D 숲속 아지트 오렌지 테마 */
+        .section-house {
+            background: linear-gradient(180deg, rgba(255, 253, 247, 0.96) 0%, rgba(255, 243, 224, 0.94) 100%);
+            border: 3px solid #ffb74d;
+            box-shadow: 
+                0 10px 0 #fb8c00,
+                0 20px 35px rgba(230, 81, 0, 0.2),
+                inset 0 4px 10px rgba(255, 255, 255, 0.9);
+        }
+
+        .section-house .section-badge {
+            background: linear-gradient(180deg, #ffa726 0%, #f57c00 100%);
+            color: #ffffff;
+            border: 2px solid #fff8e1;
+            box-shadow: 0 4px 0 #e65100, 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .section-house .section-title { color: #e65100; }
+        .section-house .section-subtitle { color: #ef6c00; }
+
+        /* 3D 존 구분선 */
+        .forest-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin: 10px 0 38px;
+            color: #2e7d32;
+            font-family: 'Jua', sans-serif;
+            font-size: 1.3rem;
+            text-shadow: 0 2px 0 rgba(255,255,255,0.8);
+        }
+
+        .forest-divider::before,
+        .forest-divider::after {
+            content: '';
+            height: 6px;
+            flex: 1;
+            max-width: 150px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, transparent, #81c784, transparent);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 1.7rem;
+            color: var(--dark-green);
+            margin-bottom: 6px;
+            text-shadow: 0 2px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 0.96rem;
+            color: #388e3c;
+            margin-bottom: 24px;
+        }
+
+        /* 1. 좋아하는 것 3가지 (3D 입체 플립 카드) */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        @media (max-width: 650px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+        }
+
+        .flip-card {
+            background-color: transparent;
+            height: 225px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 650px) {
+            .flip-card {
+                height: 175px;
+            }
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+
+        .flip-card-front {
+            background: linear-gradient(145deg, #ffffff, #e8f5e9);
+            border: 3px solid #a5d6a7;
+            box-shadow: 
+                0 8px 0 #81c784,
+                0 14px 20px rgba(46, 125, 50, 0.16),
+                inset 0 4px 8px rgba(255,255,255,0.9);
+        }
+
+        .card-emoji {
+            font-size: 3.7rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 6px 6px rgba(0,0,0,0.18));
+            transition: transform 0.3s;
+        }
+
+        .flip-card:hover .card-emoji {
+            transform: scale(1.18) rotate(6deg) translateY(-4px);
+        }
+
+        .card-label {
+            font-family: 'Jua', sans-serif;
+            font-size: 1.4rem;
+            color: var(--dark-green);
+        }
+
+        .tap-hint {
+            font-size: 0.8rem;
+            color: #2e7d32;
+            margin-top: 8px;
+            background: #c8e6c9;
+            padding: 4px 12px;
+            border-radius: 12px;
+            box-shadow: 0 2px 0 #81c784;
+        }
+
+        .flip-card-back {
+            background: linear-gradient(145deg, #66bb6a 0%, #388e3c 100%);
+            color: white;
+            transform: rotateY(180deg);
+            border: 3px solid #2e7d32;
+            box-shadow: 
+                0 8px 0 #1b5e20,
+                0 14px 20px rgba(27, 94, 32, 0.25);
+        }
+
+        .flip-card-back h4 {
+            font-family: 'Jua', sans-serif;
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: var(--accent-yellow);
+            text-shadow: 0 2px 3px rgba(0,0,0,0.3);
+        }
+
+        .flip-card-back p {
+            font-size: 0.95rem;
+            line-height: 1.45;
+            word-break: keep-all;
+        }
+
+        /* 2. 3D OX 퀴즈 섹션 */
+        .quiz-box {
+            background: linear-gradient(180deg, #f1f8e9, #dcedc8);
+            border-radius: 24px;
+            padding: 22px;
+            text-align: center;
+            border: 3px solid #aed581;
+            box-shadow: inset 0 3px 8px rgba(255,255,255,0.8);
+        }
+
+        .quiz-question {
+            font-family: 'Jua', sans-serif;
+            font-size: 1.38rem;
+            color: #1b5e20;
+            margin-bottom: 22px;
+            word-break: keep-all;
+        }
+
+        .quiz-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .btn-ox {
+            width: 115px;
+            height: 78px;
+            border: none;
+            border-radius: 22px;
+            font-family: 'Jua', sans-serif;
+            font-size: 2.3rem;
+            cursor: pointer;
+            transition: all 0.12s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 3px 0 rgba(0,0,0,0.2);
+        }
+
+        .btn-o {
+            background: linear-gradient(180deg, #4fc3f7, #039be5);
+            color: white;
+            box-shadow: 0 8px 0 #0277bd, 0 12px 18px rgba(3, 155, 229, 0.3);
+        }
+        .btn-o:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #0277bd;
+        }
+
+        .btn-x {
+            background: linear-gradient(180deg, #ff8a65, #f4511e);
+            color: white;
+            box-shadow: 0 8px 0 #bf360c, 0 12px 18px rgba(244, 81, 30, 0.3);
+        }
+        .btn-x:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #bf360c;
+        }
+
+        .quiz-result {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 18px;
+            font-weight: bold;
+            display: none;
+            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .quiz-result.correct {
+            display: block;
+            background: #e8f5e9;
+            color: #1b5e20;
+            border: 3px solid #66bb6a;
+            box-shadow: 0 5px 0 #81c784;
+        }
+
+        .quiz-result.wrong {
+            display: block;
+            background: #ffebee;
+            color: #b71c1c;
+            border: 3px solid #ef5350;
+            box-shadow: 0 5px 0 #e57373;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        /* 3. 오늘의 운세 섹션 */
+        .fortune-box {
+            text-align: center;
+            background: linear-gradient(180deg, #fffde7, #fff9c4);
+            border-radius: 24px;
+            padding: 22px 18px;
+            border: 3px solid #ffe082;
+        }
+
+        .fortune-display {
+            background: white;
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 20px;
+            border: 3px solid #ffd54f;
+            box-shadow: 0 6px 0 #ffecb3;
+            min-height: 88px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        .fortune-badge {
+            display: inline-block;
+            background: #fff8e1;
+            color: #e65100;
+            font-family: 'Jua', sans-serif;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        .btn-fortune {
+            background: linear-gradient(180deg, #ffd54f 0%, #ffa000 100%);
+            color: #4e342e;
+            border: none;
+            border-radius: 22px;
+            padding: 13px 28px;
+            font-family: 'Jua', sans-serif;
+            font-size: 1.18rem;
+            cursor: pointer;
+            box-shadow: 0 7px 0 #ff6f00, 0 12px 18px rgba(255, 160, 0, 0.3);
+            transition: all 0.12s;
+        }
+
+        .btn-fortune:active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #ff6f00;
+        }
+
+        /* 4 & 5. 3D 인터랙티브 무대 컨테이너 공통 스타일 */
+        .dressup-box, .house-box {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 26px;
+            padding: 20px 16px;
+            text-align: center;
+        }
+
+        .dressup-box { border: 3px solid #f8bbd0; }
+        .house-box { border: 3px solid #ffe0b2; }
+
+        .animal-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-animal {
+            background: #fff;
+            border: 2px solid #f48fb1;
+            border-radius: 18px;
+            padding: 8px 15px;
+            font-family: 'Jua', sans-serif;
+            font-size: 1rem;
+            color: #ad1457;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #f8bbd0;
+            transition: all 0.15s;
+        }
+
+        .btn-animal.active {
+            background: linear-gradient(180deg, #f48fb1 0%, #ec407a 100%);
+            color: white;
+            border-color: #d81b60;
+            box-shadow: 0 4px 0 #ad1457;
+            transform: translateY(-2px);
+        }
+
+        /* 3D WebGL 캔버스 무대 박스 */
+        .canvas-3d-frame {
+            position: relative;
+            width: 100%;
+            max-width: 440px;
+            height: 290px;
+            margin: 0 auto 18px;
+            border-radius: 26px;
+            overflow: hidden;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .canvas-3d-frame:active {
+            cursor: grabbing;
+        }
+
+        .salon-3d-frame {
+            background: radial-gradient(circle at 50% 40%, #fff0f5, #f8bbd0);
+            border: 4px solid #f06292;
+            box-shadow: 0 8px 0 #ec407a, 0 15px 25px rgba(216, 27, 96, 0.22);
+        }
+
+        .house-3d-frame {
+            background: radial-gradient(circle at 50% 40%, #fffde7, #ffe082);
+            border: 4px solid #ffa726;
+            box-shadow: 0 8px 0 #f57c00, 0 15px 25px rgba(230, 81, 0, 0.22);
+        }
+
+        .canvas-3d-frame canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .drag-3d-hint {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.85);
+            color: #5d4037;
+            font-family: 'Jua', sans-serif;
+            font-size: 0.78rem;
+            padding: 4px 10px;
+            border-radius: 14px;
+            pointer-events: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+
+        .dressup-tabs, .house-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: #fce4ec;
+            border: 2px solid #f48fb1;
+            border-radius: 18px;
+            padding: 8px 15px;
+            font-family: 'Jua', sans-serif;
+            font-size: 0.98rem;
+            color: #ad1457;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #f8bbd0;
+            transition: all 0.15s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(180deg, #ffd54f 0%, #ffb300 100%);
+            border-color: #f57c00;
+            color: #4e342e;
+            box-shadow: 0 4px 0 #e65100;
+        }
+
+        .house-tab-btn {
+            background: #fff3e0;
+            border: 2px solid #ffb74d;
+            border-radius: 18px;
+            padding: 8px 14px;
+            font-family: 'Jua', sans-serif;
+            font-size: 0.95rem;
+            color: #e65100;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #ffe0b2;
+            transition: all 0.15s;
+        }
+
+        .house-tab-btn.active {
+            background: linear-gradient(180deg, #66bb6a 0%, #43a047 100%);
+            border-color: #2e7d32;
+            color: white;
+            box-shadow: 0 4px 0 #1b5e20;
+        }
+
+        .item-grid, .house-item-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-width: 480px;
+            margin: 0 auto 20px;
+            padding: 12px;
+            border-radius: 20px;
+        }
+
+        .item-grid {
+            background: #fff5f8;
+            border: 2px solid #f8bbd0;
+        }
+
+        .house-item-grid {
+            background: #fff8e1;
+            border: 2px solid #ffe0b2;
+        }
+
+        @media (max-width: 480px) {
+            .item-grid, .house-item-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .item-btn, .house-item-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 10px 6px;
+            cursor: pointer;
+            transition: all 0.12s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-family: 'Gowun Dodum', sans-serif;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #5d4037;
+            box-shadow: 0 4px 0 #e0e0e0;
+        }
+
+        .item-btn:active, .house-item-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #e0e0e0;
+        }
+
+        .item-btn.selected {
+            background: #fffde7;
+            border-color: #fbc02d;
+            box-shadow: 0 4px 0 #f9a825;
+        }
+
+        .house-item-btn.selected {
+            background: #e8f5e9;
+            border-color: #66bb6a;
+            box-shadow: 0 4px 0 #388e3c;
+        }
+
+        .item-icon {
+            font-size: 1.65rem;
+            filter: drop-shadow(0 3px 2px rgba(0,0,0,0.15));
+        }
+
+        .dressup-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-salon-action {
+            border: none;
+            border-radius: 20px;
+            padding: 11px 20px;
+            font-family: 'Jua', sans-serif;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.12s;
+            color: white;
+        }
+
+        .btn-salon-action:active {
+            transform: translateY(4px);
+        }
+
+        .btn-random {
+            background: linear-gradient(180deg, #ba68c8, #8e24aa);
+            box-shadow: 0 5px 0 #6a1b9a;
+        }
+        .btn-random:active { box-shadow: 0 1px 0 #6a1b9a; }
+
+        .btn-clear {
+            background: linear-gradient(180deg, #90a4ae, #607d8b);
+            box-shadow: 0 5px 0 #37474f;
+        }
+        .btn-clear:active { box-shadow: 0 1px 0 #37474f; }
+
+        .btn-complete {
+            background: linear-gradient(180deg, #ff8a65, #f4511e);
+            box-shadow: 0 5px 0 #bf360c;
+        }
+        .btn-complete:active { box-shadow: 0 1px 0 #bf360c; }
+
+        .salon-message {
+            margin-top: 14px;
+            font-family: 'Jua', sans-serif;
+            font-size: 1.1rem;
+            color: #d84315;
+            min-height: 26px;
+            word-break: keep-all;
+        }
+
+        /* 축하 효과 파티클 (컨페티) */
+        .confetti {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            font-size: 24px;
+            animation: confettiFall 2.2s ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translate(0, 0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) rotate(720deg) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        footer {
+            text-align: center;
+            color: #1b5e20;
+            font-family: 'Jua', sans-serif;
+            font-size: 1rem;
+            margin-top: 20px;
+            text-shadow: 0 2px 0 rgba(255,255,255,0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 전체 배경 3D 숲속 공간 캔버스 -->
+    <canvas id="bg3dCanvas"></canvas>
+
+    <div class="container">
+        <!-- 헤더: 3D 나무 팻말 -->
+        <header>
+            <div class="wood-sign">
+                <div class="animal-friends">🐿️ 🦊 🐰 🐻 🦔</div>
+                <h1>안녕! 나는 '^.^'이야 🌿</h1>
+                <p>입체감 팡팡! 3D 숲속 아지트에 놀러 온 걸 환영해!</p>
+            </div>
+        </header>
+
+        <!-- 섹션 1: 좋아하는 것 3가지 (3D 플립 카드) -->
+        <section class="forest-section section-profile">
+            <div class="section-badge">🌿 CHAPTER 01 · ^.^ 취향 도감</div>
+            <h2 class="section-title">✨ ^.^가 좋아하는 3가지 ✨</h2>
+            <p class="section-subtitle">3D 카드를 톡! 눌러서 뒤집어 봐. 비밀 이유가 숨어있어!</p>
+
+            <div class="cards-grid">
+                <div class="flip-card" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="card-emoji">💤</div>
+                            <div class="card-label">달콤한 잠</div>
+                            <div class="tap-hint">눌러서 이유 보기 👆</div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h4>💤 잠이 좋은 이유!</h4>
+                            <p>이불 밖은 너무 위험해! 꿈속에서는 내가 숲속의 왕이자 하늘을 나는 다람쥐가 될 수 있거든. 충전 100%는 필수!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="card-emoji">💎</div>
+                            <div class="card-label">반짝이는 보석</div>
+                            <div class="tap-hint">눌러서 이유 보기 👆</div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h4>💎 보석이 좋은 이유!</h4>
+                            <p>사실 내 전생은 반짝이는 걸 모으는 까마귀였을지도 몰라! 영롱한 빛깔을 보고 있으면 기분이 몽글몽글해져✨</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="card-emoji">🍓</div>
+                            <div class="card-label">맛있는 음식</div>
+                            <div class="tap-hint">눌러서 이유 보기 👆</div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h4>🍓 음식이 좋은 이유!</h4>
+                            <p>세상엔 맛있는 게 너무 많고 내 위장은 하나뿐이라 슬퍼! 맛있는 걸 한 입 먹는 순간이 하루 중 제일 행복한 마법이야🍰</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 섹션 2: OX 퀴즈 -->
+        <section class="forest-section section-profile">
+            <div class="section-badge">🐾 CHAPTER 02 · 동물 취향 퀴즈</div>
+            <h2 class="section-title">❓ 숲속 OX 퀴즈 ❓</h2>
+            <p class="section-subtitle">^.^의 마음을 맞혀봐! 입체 버튼을 꾹 눌러봐!</p>
+
+            <div class="quiz-box">
+                <div class="quiz-question">"나는 고양이보다 카피바라를 더 좋아한다"</div>
+                <div class="quiz-buttons">
+                    <button class="btn-ox btn-o" onclick="checkQuiz('O')">O</button>
+                    <button class="btn-ox btn-x" onclick="checkQuiz('X')">X</button>
+                </div>
+                <div class="quiz-result" id="quizResult"></div>
+            </div>
+        </section>
+
+        <!-- 섹션 3: 오늘의 운세 -->
+        <section class="forest-section section-profile">
+            <div class="section-badge">🔮 CHAPTER 03 · 행운의 점괘</div>
+            <h2 class="section-title">🍀 오늘의 숲속 운세 🍀</h2>
+            <p class="section-subtitle">숲속의 3D 다람쥐 점쟁이가 오늘의 행운을 알려줄게!</p>
+
+            <div class="fortune-box">
+                <div class="fortune-display" id="fortuneDisplay">
+                    <span class="fortune-badge">✨ 두근두근 오늘의 운세 ✨</span>
+                    <span>아래 버튼을 눌러 오늘의 운세를 확인해 봐!</span>
+                </div>
+                <button class="btn-fortune" onclick="drawFortune()">🌰 오늘의 운세 뽑기</button>
+            </div>
+        </section>
+
+        <!-- 3D 미니게임 존 구분선 -->
+        <div class="forest-divider">🎲 3D MINI GAME ZONE 🎲</div>
+
+        <!-- 섹션 4: 3D 숲속 동물 뷰티 살롱 -->
+        <section class="forest-section section-salon">
+            <div class="section-badge">🎀 3D MINI GAME 01 · 뷰티 살롱</div>
+            <h2 class="section-title">💄 3D 숲속 동물 뷰티 살롱 👗</h2>
+            <p class="section-subtitle">3D 동물 친구를 마우스·손가락으로 돌려가며 멋지게 꾸며줘!</p>
+
+            <div class="dressup-box">
+                <div class="animal-selector">
+                    <button class="btn-animal active" onclick="selectAnimal('cat', this)">🐱 고양이</button>
+                    <button class="btn-animal" onclick="selectAnimal('rabbit', this)">🐰 토끼</button>
+                    <button class="btn-animal" onclick="selectAnimal('bear', this)">🐻 곰돌이</button>
+                    <button class="btn-animal" onclick="selectAnimal('fox', this)">🦊 여우</button>
+                </div>
+
+                <!-- 3D 동물 뷰티 살롱 무대 -->
+                <div class="canvas-3d-frame salon-3d-frame" id="salon3dContainer">
+                    <div class="drag-3d-hint">🔄 드래그해서 360° 회전</div>
+                </div>
+
+                <div class="dressup-tabs">
+                    <button class="tab-btn active" onclick="switchCategory('accessory', this)">👑 악세사리</button>
+                    <button class="tab-btn" onclick="switchCategory('makeup', this)">💄 화장</button>
+                    <button class="tab-btn" onclick="switchCategory('outfit', this)">👗 옷</button>
+                </div>
+
+                <div class="item-grid" id="itemGrid"></div>
+
+                <div class="dressup-actions">
+                    <button class="btn-salon-action btn-random" onclick="randomStyle()">🎲 랜덤 코디</button>
+                    <button class="btn-salon-action btn-clear" onclick="clearStyle()">🧼 초기화</button>
+                    <button class="btn-salon-action btn-complete" onclick="completeStyle()">✨ 코디 완성!</button>
+                </div>
+
+                <div class="salon-message" id="salonMessage">원하는 아이템을 눌러서 3D 동물 친구를 꾸며줘!</div>
+            </div>
+        </section>
+
+        <!-- 섹션 5: 3D 숲속 아지트 꾸미기 -->
+        <section class="forest-section section-house">
+            <div class="section-badge">🏡 3D MINI GAME 02 · 아지트 인테리어</div>
+            <h2 class="section-title">🛋️ 3D ^.^의 숲속 아지트 꾸미기 🪴</h2>
+            <p class="section-subtitle">입체 미니어처 방을 회전시켜 보며 나만의 아지트를 완성해 봐!</p>
+
+            <div class="house-box">
+                <!-- 3D 미니어처 아지트 무대 -->
+                <div class="canvas-3d-frame house-3d-frame" id="house3dContainer">
+                    <div class="drag-3d-hint">🔄 드래그해서 방 구경하기</div>
+                </div>
+
+                <div class="house-tabs">
+                    <button class="house-tab-btn active" onclick="switchHouseCategory('wall', this)">🪟 벽지·바닥</button>
+                    <button class="house-tab-btn" onclick="switchHouseCategory('furniture', this)">🛏️ 큰 가구</button>
+                    <button class="house-tab-btn" onclick="switchHouseCategory('table', this)">🍰 테이블</button>
+                    <button class="house-tab-btn" onclick="switchHouseCategory('decor', this)">🪴 소품·러그</button>
+                </div>
+
+                <div class="house-item-grid" id="houseItemGrid"></div>
+
+                <div class="dressup-actions">
+                    <button class="btn-salon-action btn-random" onclick="randomHouse()">🎲 랜덤 인테리어</button>
+                    <button class="btn-salon-action btn-clear" onclick="clearHouse()">🧹 방 비우기</button>
+                    <button class="btn-salon-action btn-complete" onclick="completeHouse()">🏡 아지트 완성!</button>
+                </div>
+
+                <div class="salon-message" id="houseMessage">어떤 3D 가구로 ^.^의 비밀 아지트를 꾸며볼까?</div>
+            </div>
+        </section>
+
+        <footer>
+            🌲 ^.^의 3D 숲속 아지트에 놀러 와줘서 고마워! 🐾
+        </footer>
+    </div>
+
+    <script>
+        /* ==========================================
+           1. 마우스 & 터치 반짝이 효과
+        ========================================== */
+        let lastSparkleTime = 0;
+        const sparkleEmojis = ['✨', '⭐', '🌟', '💫', '🍀'];
+
+        function spawnSparkle(x, y) {
+            const now = Date.now();
+            if (now - lastSparkleTime < 45) return;
+            lastSparkleTime = now;
+
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.textContent = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+            sparkle.style.left = x + 'px';
+            sparkle.style.top = y + 'px';
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 800);
+        }
+
+        window.addEventListener('mousemove', (e) => spawnSparkle(e.clientX, e.clientY));
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) spawnSparkle(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) spawnSparkle(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+
+        /* ==========================================
+           2. OX 퀴즈 및 축하 효과
+        ========================================== */
+        function checkQuiz(userAnswer) {
+            const resultBox = document.getElementById('quizResult');
+            resultBox.className = 'quiz-result';
+            void resultBox.offsetWidth;
+
+            if (userAnswer === 'X') {
+                resultBox.classList.add('correct');
+                resultBox.innerHTML = '🎉 정답이야! 딩동댕~ 🐱💖<br>카피바라도 귀엽지만, 역시 도도하고 말랑한 고양이가 최고지!';
+                triggerCelebration();
+            } else {
+                resultBox.classList.add('wrong');
+                resultBox.innerHTML = '💦 땡! 아쉽다~ 정답은 X야! 😿<br>카피바라도 멍때리는 게 귀엽지만, ^.^의 원픽은 고양이야!';
+            }
+        }
+
+        function triggerCelebration() {
+            const celebrations = ['🎉', '🎊', '🐱', '💖', '✨', '🌸'];
+            for (let i = 0; i < 35; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.textContent = celebrations[Math.floor(Math.random() * celebrations.length)];
+                conf.style.left = (50 + (Math.random() - 0.5) * 20) + 'vw';
+                conf.style.top = '50vh';
+                conf.style.setProperty('--tx', (Math.random() - 0.5) * 80 + 'vw');
+                conf.style.setProperty('--ty', (Math.random() - 0.7) * 80 + 'vh');
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 2200);
+            }
+        }
+
+        /* ==========================================
+           3. 오늘의 운세
+        ========================================== */
+        const fortunes = [
+            { title: "🌟 대길! 숲속의 황금 도토리 운세", text: "오늘 하는 일마다 술술 풀릴 거야! 맛있는 간식이 생길지도 몰라!" },
+            { title: "🐱 말랑한 고양이 젤리 운세", text: "기분 좋은 낮잠이나 휴식을 취하기 딱 좋은 날이야. 푹 쉬면 행운이 찾아와!" },
+            { title: "💎 반짝이는 보석 발견 운세", text: "평소 놓쳤던 작고 소중한 행복을 발견하게 될 거야. 주변을 잘 살펴봐!" },
+            { title: "🍓 달콤한 딸기 케이크 운세", text: "오늘 먹는 음식이 유독 맛있게 느껴질 거야! 맛있는 걸 먹으면 스트레스가 싹 날아가!" },
+            { title: "🐿️ 부지런한 다람쥐 운세", text: "미뤄뒀던 일이 있다면 오늘 10분만 투자해 봐! 생각보다 금방 해낼 수 있어!" },
+            { title: "🍀 네잎클로버 산책 운세", text: "잠깐 바깥 바람을 쐬면 머리가 맑아지고 좋은 아이디어가 퐁퐁 솟아날 거야!" },
+            { title: "🦊 영리한 여우의 지혜 운세", text: "고민하던 문제가 있다면 의외로 아주 간단한 곳에서 해답을 찾게 될 거야!" },
+            { title: "🌈 무지개 다리 건너기 운세", text: "반가운 친구에게 연락이 오거나, 즐거운 대화를 나누게 되는 기분 좋은 하루야!" },
+            { title: "🧸 포근한 곰인형 포옹 운세", text: "오늘은 스스로를 많이 칭찬해 주는 날! 넌 이미 충분히 잘하고 있어!" },
+            { title: "🎵 숲속 새들의 노랫소리 운세", text: "좋아하는 음악을 들으면서 하루를 보내 봐. 행운의 에너지가 충전될 거야!" },
+            { title: "🦔 고슴도치의 작은 선물 운세", text: "예상치 못한 작은 칭찬이나 기분 좋은 소식을 듣게 될 징조야!" },
+            { title: "🌙 별빛 가득한 밤하늘 운세", text: "오늘 밤에는 아주 기분 좋고 신나는 꿈을 꾸게 될 거야. 일찍 자면 보너스 행운!" }
+        ];
+
+        let lastFortuneIndex = -1;
+        function drawFortune() {
+            const display = document.getElementById('fortuneDisplay');
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * fortunes.length);
+            } while (randomIndex === lastFortuneIndex);
+            lastFortuneIndex = randomIndex;
+            const selected = fortunes[randomIndex];
+
+            display.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                display.innerHTML = `
+                    <span class="fortune-badge">${selected.title}</span>
+                    <strong>${selected.text}</strong>
+                `;
+                display.style.transform = 'scale(1)';
+            }, 120);
+        }
+
+        /* ==========================================
+           4. Three.js 3D 엔진 초기화 & 공통 유틸
+        ========================================== */
+        function createToonMaterial(colorHex, shininess = 40) {
+            return new THREE.MeshPhongMaterial({
+                color: colorHex,
+                shininess: shininess,
+                flatShading: false
+            });
+        }
+
+        // 드래그 회전 컨트롤러 헬퍼
+        function attachDragRotation(domElement, targetObj, onInteract) {
+            let isDragging = false;
+            let prevX = 0;
+
+            const startDrag = (x) => {
+                isDragging = true;
+                prevX = x;
+                if (onInteract) onInteract(true);
+            };
+            const moveDrag = (x) => {
+                if (!isDragging) return;
+                const deltaX = x - prevX;
+                targetObj.rotation.y += deltaX * 0.015;
+                prevX = x;
+            };
+            const endDrag = () => {
+                isDragging = false;
+                if (onInteract) onInteract(false);
+            };
+
+            domElement.addEventListener('mousedown', (e) => startDrag(e.clientX));
+            window.addEventListener('mousemove', (e) => moveDrag(e.clientX));
+            window.addEventListener('mouseup', endDrag);
+
+            domElement.addEventListener('touchstart', (e) => {
+                if (e.touches.length > 0) startDrag(e.touches[0].clientX);
+            }, { passive: true });
+            domElement.addEventListener('touchmove', (e) => {
+                if (e.touches.length > 0) moveDrag(e.touches[0].clientX);
+            }, { passive: true });
+            domElement.addEventListener('touchend', endDrag);
+        }
+
+        /* ==========================================
+           5. 배경 3D 숲속 세상 (떠다니는 3D 나무, 구름, 보석)
+        ========================================== */
+        let bgScene, bgCamera, bgRenderer, bgFloaters = [];
+
+        function initBg3D() {
+            const canvas = document.getElementById('bg3dCanvas');
+            bgScene = new THREE.Scene();
+            bgCamera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+            bgCamera.position.set(0, 1, 14);
+
+            bgRenderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            bgRenderer.setSize(window.innerWidth, window.innerHeight);
+            bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            const ambient = new THREE.AmbientLight(0xffffff, 0.75);
+            bgScene.add(ambient);
+            const dirLight = new THREE.DirectionalLight(0xfff9c4, 0.85);
+            dirLight.position.set(8, 15, 10);
+            bgScene.add(dirLight);
+
+            // 3D 숲속 원뿔 나무들 배치
+            const treeColors = [0x66bb6a, 0x81c784, 0x4caf50, 0xaed581];
+            for (let i = 0; i < 14; i++) {
+                const treeGroup = new THREE.Group();
+                const trunk = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.25, 0.35, 1.2, 8),
+                    createToonMaterial(0x8d6e63)
+                );
+                trunk.position.y = 0.6;
+                treeGroup.add(trunk);
+
+                const col = treeColors[i % treeColors.length];
+                const cone1 = new THREE.Mesh(new THREE.ConeGeometry(1.1, 1.8, 10), createToonMaterial(col));
+                cone1.position.y = 1.8;
+                treeGroup.add(cone1);
+
+                const cone2 = new THREE.Mesh(new THREE.ConeGeometry(0.8, 1.4, 10), createToonMaterial(col));
+                cone2.position.y = 2.8;
+                treeGroup.add(cone2);
+
+                const side = i % 2 === 0 ? -1 : 1;
+                treeGroup.position.set(
+                    side * (5 + Math.random() * 8),
+                    -4.5 + (Math.random() - 0.5) * 3,
+                    -2 - Math.random() * 10
+                );
+                const s = 0.7 + Math.random() * 0.7;
+                treeGroup.scale.set(s, s, s);
+                bgScene.add(treeGroup);
+                bgFloaters.push({ mesh: treeGroup, speed: 0.4 + Math.random() * 0.4, baseY: treeGroup.position.y, rot: 0.002 });
+            }
+
+            // 떠다니는 3D 반짝이 보석(Octahedron) & 구름
+            const gemColors = [0xff80ab, 0x4fc3f7, 0xffd54f, 0xba68c8];
+            for (let i = 0; i < 12; i++) {
+                const gem = new THREE.Mesh(
+                    new THREE.OctahedronGeometry(0.45, 0),
+                    new THREE.MeshPhongMaterial({ color: gemColors[i % gemColors.length], shininess: 100 })
+                );
+                gem.position.set(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 12,
+                    -3 - Math.random() * 6
+                );
+                bgScene.add(gem);
+                bgFloaters.push({ mesh: gem, speed: 1 + Math.random(), baseY: gem.position.y, rot: 0.02 });
+            }
+        }
+
+        /* ==========================================
+           6. 미니게임 1: 3D 숲속 동물 뷰티 살롱
+        ========================================== */
+        const salonState = {
+            animal: 'cat',
+            category: 'accessory',
+            accessory: 'none',
+            makeup: 'none',
+            outfit: 'none'
+        };
+
+        const salonItems = {
+            accessory: [
+                { id: 'none', name: '없음', icon: '🚫' },
+                { id: 'ribbon', name: '3D 왕리본', icon: '🎀' },
+                { id: 'crown', name: '황금왕관', icon: '👑' },
+                { id: 'flower', name: '입체꽃핀', icon: '🌸' },
+                { id: 'sprout', name: '새싹핀', icon: '🌱' },
+                { id: 'beret', name: '화가베레모', icon: '🎨' },
+                { id: 'glasses', name: '선글라스', icon: '🕶️' },
+                { id: 'headphones', name: '헤드셋', icon: '🎧' }
+            ],
+            makeup: [
+                { id: 'none', name: '쌩얼', icon: '🧼' },
+                { id: 'blush', name: '복숭아볼터치', icon: '🍑' },
+                { id: 'sparkle', name: '반짝이눈화장', icon: '✨' },
+                { id: 'heart', name: '하트볼터치', icon: '💖' },
+                { id: 'whiskers', name: '고양이수염', icon: '🐾' },
+                { id: 'freckles', name: '귀염주근깨', icon: '🍪' },
+                { id: 'star', name: '별빛메이크업', icon: '⭐' },
+                { id: 'glam', name: '풀메이크업', icon: '💄' }
+            ],
+            outfit: [
+                { id: 'none', name: '기본털옷', icon: '🐾' },
+                { id: 'overalls', name: '청멜빵바지', icon: '👖' },
+                { id: 'dress', name: '딸기원피스', icon: '👗' },
+                { id: 'cape', name: '숲속망토', icon: '🧣' },
+                { id: 'tuxedo', name: '나비넥타이', icon: '🤵' },
+                { id: 'hoodie', name: '노랑후드티', icon: '🐥' },
+                { id: 'sailor', name: '세일러복', icon: '⚓' },
+                { id: 'wizard', name: '마법사로브', icon: '🔮' }
+            ]
+        };
+
+        const animalColors3D = {
+            cat: { main: 0xfff3e0, sub: 0xffcc80, earInner: 0xf48fb1, nose: 0xff8a80 },
+            rabbit: { main: 0xffffff, sub: 0xfce4ec, earInner: 0xf8bbd0, nose: 0xff80ab },
+            bear: { main: 0x8d6e63, sub: 0xd7ccc8, earInner: 0x5d4037, nose: 0x3e2723 },
+            fox: { main: 0xff7043, sub: 0xfff8e1, earInner: 0x3e2723, nose: 0x212121 }
+        };
+
+        let salonScene, salonCamera, salonRenderer, animalRoot, salonDragging = false, salonBounce = 0;
+
+        function initSalon3D() {
+            const container = document.getElementById('salon3dContainer');
+            salonScene = new THREE.Scene();
+            salonCamera = new THREE.PerspectiveCamera(42, container.clientWidth / container.clientHeight, 0.1, 50);
+            salonCamera.position.set(0, 1.3, 6.2);
+            salonCamera.lookAt(0, 0.9, 0);
+
+            salonRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            salonRenderer.setSize(container.clientWidth, container.clientHeight);
+            salonRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(salonRenderer.domElement);
+
+            // 조명 세팅
+            salonScene.add(new THREE.AmbientLight(0xffffff, 0.72));
+            const keyLight = new THREE.DirectionalLight(0xffffff, 0.85);
+            keyLight.position.set(4, 7, 6);
+            salonScene.add(keyLight);
+            const rimLight = new THREE.DirectionalLight(0xffcdd2, 0.45);
+            rimLight.position.set(-5, 3, -4);
+            salonScene.add(rimLight);
+
+            // 회전 원형 무대 받침대
+            const pedestal = new THREE.Mesh(
+                new THREE.CylinderGeometry(1.6, 1.8, 0.25, 32),
+                createToonMaterial(0xf8bbd0)
+            );
+            pedestal.position.y = -0.15;
+            salonScene.add(pedestal);
+
+            const pedestalTrim = new THREE.Mesh(
+                new THREE.TorusGeometry(1.62, 0.06, 12, 32),
+                createToonMaterial(0xffd54f, 80)
+            );
+            pedestalTrim.rotation.x = Math.PI / 2;
+            pedestalTrim.position.y = -0.02;
+            salonScene.add(pedestalTrim);
+
+            animalRoot = new THREE.Group();
+            salonScene.add(animalRoot);
+
+            attachDragRotation(container, animalRoot, (d) => { salonDragging = d; });
+            buildAnimal3D();
+        }
+
+        function buildAnimal3D() {
+            while (animalRoot.children.length > 0) {
+                animalRoot.remove(animalRoot.children[0]);
+            }
+
+            const c = animalColors3D[salonState.animal];
+            const mainMat = createToonMaterial(c.main);
+            const subMat = createToonMaterial(c.sub);
+            const earMat = createToonMaterial(c.earInner);
+            const noseMat = createToonMaterial(c.nose);
+            const eyeMat = createToonMaterial(0x261812, 90);
+
+            // 1. 몸통 & 팔다리
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.82, 1.15, 24), mainMat);
+            body.position.y = 0.65;
+            animalRoot.add(body);
+
+            const belly = new THREE.Mesh(new THREE.SphereGeometry(0.55, 20, 20), subMat);
+            belly.position.set(0, 0.62, 0.35);
+            belly.scale.set(0.95, 1.0, 0.65);
+            animalRoot.add(belly);
+
+            // 팔 & 발
+            [-0.78, 0.78].forEach((x, idx) => {
+                const arm = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), mainMat);
+                arm.position.set(x, 0.85, 0.1);
+                arm.scale.set(0.85, 1.4, 0.85);
+                arm.rotation.z = idx === 0 ? 0.35 : -0.35;
+                animalRoot.add(arm);
+
+                const foot = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16), mainMat);
+                foot.position.set(x * 0.55, 0.14, 0.25);
+                foot.scale.set(1, 0.65, 1.3);
+                animalRoot.add(foot);
+            });
+
+            // 꼬리
+            const tail = new THREE.Mesh(
+                salonState.animal === 'fox' ? new THREE.ConeGeometry(0.32, 1.0, 16) : new THREE.SphereGeometry(0.28, 16, 16),
+                salonState.animal === 'fox' ? mainMat : subMat
+            );
+            tail.position.set(0, 0.45, -0.78);
+            if (salonState.animal === 'fox') tail.rotation.x = -0.8;
+            animalRoot.add(tail);
+
+            // 2. 머리 (클레이 스타일 둥근 얼굴)
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.92, 28, 24), mainMat);
+            head.position.set(0, 1.82, 0);
+            head.scale.set(1.08, 0.95, 0.96);
+            animalRoot.add(head);
+
+            // 여우 하얀 볼털
+            if (salonState.animal === 'fox') {
+                [-0.45, 0.45].forEach(x => {
+                    const cheekFur = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), subMat);
+                    cheekFur.position.set(x, 1.62, 0.65);
+                    animalRoot.add(cheekFur);
+                });
+            }
+
+            // 3. 동물별 3D 귀
+            if (salonState.animal === 'cat' || salonState.animal === 'fox') {
+                const earH = salonState.animal === 'fox' ? 0.85 : 0.65;
+                [-0.58, 0.58].forEach((x, idx) => {
+                    const ear = new THREE.Mesh(new THREE.ConeGeometry(0.34, earH, 16), mainMat);
+                    ear.position.set(x, 2.65, 0);
+                    ear.rotation.z = idx === 0 ? 0.28 : -0.28;
+                    animalRoot.add(ear);
+
+                    const inner = new THREE.Mesh(new THREE.ConeGeometry(0.2, earH * 0.65, 12), earMat);
+                    inner.position.set(x * 0.98, 2.62, 0.12);
+                    inner.rotation.z = idx === 0 ? 0.28 : -0.28;
+                    animalRoot.add(inner);
+                });
+            } else if (salonState.animal === 'rabbit') {
+                [-0.4, 0.4].forEach((x, idx) => {
+                    const ear = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 1.15, 16), mainMat);
+                    ear.position.set(x, 2.95, 0);
+                    ear.rotation.z = idx === 0 ? 0.14 : -0.14;
+                    animalRoot.add(ear);
+
+                    const inner = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.9, 12), earMat);
+                    inner.position.set(x, 2.92, 0.12);
+                    inner.rotation.z = idx === 0 ? 0.14 : -0.14;
+                    animalRoot.add(inner);
+                });
+            } else if (salonState.animal === 'bear') {
+                [-0.68, 0.68].forEach(x => {
+                    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), mainMat);
+                    ear.position.set(x, 2.52, 0);
+                    animalRoot.add(ear);
+
+                    const inner = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 12), earMat);
+                    inner.position.set(x, 2.52, 0.18);
+                    animalRoot.add(inner);
+                });
+            }
+
+            // 4. 입체 눈, 코, 주둥이
+            const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16), subMat);
+            muzzle.position.set(0, 1.66, 0.82);
+            muzzle.scale.set(1.2, 0.85, 0.7);
+            animalRoot.add(muzzle);
+
+            const nose = new THREE.Mesh(new THREE.SphereGeometry(0.1, 14, 14), noseMat);
+            nose.position.set(0, 1.73, 0.98);
+            animalRoot.add(nose);
+
+            [-0.36, 0.36].forEach(x => {
+                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 16), eyeMat);
+                eye.position.set(x, 1.88, 0.84);
+                animalRoot.add(eye);
+
+                const shine = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 10), createToonMaterial(0xffffff));
+                shine.position.set(x - 0.03, 1.92, 0.93);
+                animalRoot.add(shine);
+            });
+
+            // 5. 3D 옷(Outfit) 렌더링
+            if (salonState.outfit === 'overalls') {
+                const pants = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.86, 0.75, 24), createToonMaterial(0x1e88e5));
+                pants.position.y = 0.45;
+                animalRoot.add(pants);
+                [-0.35, 0.35].forEach(x => {
+                    const strap = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.65, 0.72), createToonMaterial(0x1e88e5));
+                    strap.position.set(x, 0.92, 0);
+                    animalRoot.add(strap);
+                });
+            } else if (salonState.outfit === 'dress') {
+                const skirt = new THREE.Mesh(new THREE.ConeGeometry(1.05, 1.15, 24), createToonMaterial(0xf06292));
+                skirt.position.y = 0.62;
+                animalRoot.add(skirt);
+                const collar = new THREE.Mesh(new THREE.TorusGeometry(0.56, 0.08, 10, 24), createToonMaterial(0xffffff));
+                collar.rotation.x = Math.PI / 2;
+                collar.position.y = 1.15;
+                animalRoot.add(collar);
+            } else if (salonState.outfit === 'cape') {
+                const cape = new THREE.Mesh(new THREE.ConeGeometry(1.08, 1.15, 24, 1, true), createToonMaterial(0x43a047));
+                cape.position.y = 0.68;
+                animalRoot.add(cape);
+                const clasp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), createToonMaterial(0xffd54f, 80));
+                clasp.position.set(0, 1.15, 0.62);
+                animalRoot.add(clasp);
+            } else if (salonState.outfit === 'tuxedo') {
+                const suit = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.85, 1.1, 24), createToonMaterial(0x263238));
+                suit.position.y = 0.64;
+                animalRoot.add(suit);
+                const bow = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.14, 0.12), createToonMaterial(0xe53935));
+                bow.position.set(0, 1.15, 0.66);
+                animalRoot.add(bow);
+            } else if (salonState.outfit === 'hoodie') {
+                const hoodie = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.88, 1.12, 24), createToonMaterial(0xffca28));
+                hoodie.position.y = 0.65;
+                animalRoot.add(hoodie);
+                const hood = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.16, 12, 24), createToonMaterial(0xffb300));
+                hood.rotation.x = Math.PI / 2.3;
+                hood.position.set(0, 1.22, -0.1);
+                animalRoot.add(hood);
+            } else if (salonState.outfit === 'sailor') {
+                const top = new THREE.Mesh(new THREE.CylinderGeometry(0.68, 0.85, 1.1, 24), createToonMaterial(0xffffff));
+                top.position.y = 0.64;
+                animalRoot.add(top);
+                const scarf = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.45, 12), createToonMaterial(0x1e88e5));
+                scarf.rotation.x = Math.PI;
+                scarf.position.set(0, 0.98, 0.68);
+                animalRoot.add(scarf);
+            } else if (salonState.outfit === 'wizard') {
+                const robe = new THREE.Mesh(new THREE.ConeGeometry(1.08, 1.2, 24), createToonMaterial(0x5e35b1));
+                robe.position.y = 0.64;
+                animalRoot.add(robe);
+                const belt = new THREE.Mesh(new THREE.TorusGeometry(0.78, 0.06, 10, 24), createToonMaterial(0xffd54f, 90));
+                belt.rotation.x = Math.PI / 2;
+                belt.position.y = 0.68;
+                animalRoot.add(belt);
+            }
+
+            // 6. 3D 화장(Makeup) 렌더링
+            if (salonState.makeup !== 'none') {
+                const cheekCol = (salonState.makeup === 'heart' || salonState.makeup === 'glam') ? 0xff4081 :
+                                 (salonState.makeup === 'sparkle' || salonState.makeup === 'star') ? 0xffd54f : 0xff8a80;
+                [-0.55, 0.55].forEach(x => {
+                    const blush = new THREE.Mesh(
+                        salonState.makeup === 'star' ? new THREE.OctahedronGeometry(0.13, 0) : new THREE.SphereGeometry(0.14, 12, 12),
+                        createToonMaterial(cheekCol, 60)
+                    );
+                    blush.position.set(x, 1.72, 0.78);
+                    blush.scale.set(1.2, 0.7, 0.4);
+                    animalRoot.add(blush);
+                });
+
+                if (salonState.makeup === 'whiskers') {
+                    [-0.65, 0.65].forEach((x, idx) => {
+                        for (let row = 0; row < 2; row++) {
+                            const w = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.45, 8), eyeMat);
+                            w.rotation.z = Math.PI / 2 + (row === 0 ? 0.1 : -0.1) * (idx === 0 ? 1 : -1);
+                            w.position.set(x, 1.72 - row * 0.08, 0.78);
+                            animalRoot.add(w);
+                        }
+                    });
+                }
+            }
+
+            // 7. 3D 악세사리(Accessory) 렌더링
+            if (salonState.accessory === 'ribbon') {
+                const ribGroup = new THREE.Group();
+                const ribMat = createToonMaterial(0xff1744, 60);
+                const leftWing = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.4, 12), ribMat);
+                leftWing.rotation.z = -Math.PI / 2;
+                leftWing.position.x = -0.2;
+                const rightWing = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.4, 12), ribMat);
+                rightWing.rotation.z = Math.PI / 2;
+                rightWing.position.x = 0.2;
+                const knot = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), createToonMaterial(0xff80ab));
+                ribGroup.add(leftWing, rightWing, knot);
+                ribGroup.position.set(0, 2.68, 0.25);
+                animalRoot.add(ribGroup);
+            } else if (salonState.accessory === 'crown') {
+                const crownGroup = new THREE.Group();
+                const goldMat = createToonMaterial(0xffd54f, 100);
+                const base = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.26, 0.22, 16), goldMat);
+                crownGroup.add(base);
+                for (let i = 0; i < 5; i++) {
+                    const ang = (i / 5) * Math.PI * 2;
+                    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.22, 8), goldMat);
+                    spike.position.set(Math.cos(ang) * 0.26, 0.18, Math.sin(ang) * 0.26);
+                    crownGroup.add(spike);
+                }
+                crownGroup.position.set(0, 2.74, 0.05);
+                animalRoot.add(crownGroup);
+            } else if (salonState.accessory === 'flower') {
+                const flowerGroup = new THREE.Group();
+                const petalMat = createToonMaterial(0xff80ab);
+                for (let i = 0; i < 5; i++) {
+                    const a = (i / 5) * Math.PI * 2;
+                    const p = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), petalMat);
+                    p.position.set(Math.cos(a) * 0.16, Math.sin(a) * 0.16, 0);
+                    flowerGroup.add(p);
+                }
+                const center = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 10), createToonMaterial(0xffeb3b));
+                center.position.z = 0.05;
+                flowerGroup.add(center);
+                flowerGroup.position.set(0.55, 2.48, 0.55);
+                flowerGroup.rotation.y = 0.5;
+                animalRoot.add(flowerGroup);
+            } else if (salonState.accessory === 'sprout') {
+                const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.35, 8), createToonMaterial(0x4caf50));
+                stem.position.set(0, 2.8, 0);
+                animalRoot.add(stem);
+                [-0.16, 0.16].forEach((x, idx) => {
+                    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), createToonMaterial(0x81c784));
+                    leaf.scale.set(1.4, 0.4, 0.8);
+                    leaf.position.set(x, 2.95, 0);
+                    leaf.rotation.z = idx === 0 ? 0.4 : -0.4;
+                    animalRoot.add(leaf);
+                });
+            } else if (salonState.accessory === 'beret') {
+                const beret = new THREE.Mesh(new THREE.SphereGeometry(0.62, 20, 16), createToonMaterial(0xe53935));
+                beret.scale.set(1.1, 0.4, 1.1);
+                beret.position.set(0.12, 2.66, 0.05);
+                beret.rotation.z = -0.2;
+                animalRoot.add(beret);
+            } else if (salonState.accessory === 'glasses') {
+                const glassMat = createToonMaterial(0x212121, 90);
+                const frameMat = createToonMaterial(0xff4081);
+                [-0.36, 0.36].forEach(x => {
+                    const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.06, 16), glassMat);
+                    lens.rotation.x = Math.PI / 2;
+                    lens.position.set(x, 1.88, 0.92);
+                    animalRoot.add(lens);
+                });
+                const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.05), frameMat);
+                bridge.position.set(0, 1.9, 0.94);
+                animalRoot.add(bridge);
+            } else if (salonState.accessory === 'headphones') {
+                const band = new THREE.Mesh(new THREE.TorusGeometry(0.98, 0.08, 12, 28, Math.PI), createToonMaterial(0x29b6f6, 70));
+                band.position.set(0, 1.85, 0);
+                animalRoot.add(band);
+                [-0.98, 0.98].forEach(x => {
+                    const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.18, 16), createToonMaterial(0x0288d1));
+                    cup.rotation.z = Math.PI / 2;
+                    cup.position.set(x, 1.85, 0);
+                    animalRoot.add(cup);
+                });
+            }
+        }
+
+        function selectAnimal(animalType, btn) {
+            salonState.animal = animalType;
+            document.querySelectorAll('.btn-animal').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            salonBounce = 1;
+            buildAnimal3D();
+        }
+
+        function switchCategory(cat, btn) {
+            salonState.category = cat;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderItemButtons();
+        }
+
+        function equipItem(itemId) {
+            salonState[salonState.category] = itemId;
+            renderItemButtons();
+            salonBounce = 1;
+            buildAnimal3D();
+        }
+
+        function renderItemButtons() {
+            const grid = document.getElementById('itemGrid');
+            const items = salonItems[salonState.category];
+            const currentSelected = salonState[salonState.category];
+            grid.innerHTML = items.map(item => `
+                <button class="item-btn ${currentSelected === item.id ? 'selected' : ''}" onclick="equipItem('${item.id}')">
+                    <span class="item-icon">${item.icon}</span>
+                    <span>${item.name}</span>
+                </button>
+            `).join('');
+        }
+
+        function randomStyle() {
+            const pick = (arr) => arr[Math.floor(Math.random() * arr.length)].id;
+            salonState.accessory = pick(salonItems.accessory);
+            salonState.makeup = pick(salonItems.makeup);
+            salonState.outfit = pick(salonItems.outfit);
+            renderItemButtons();
+            salonBounce = 1;
+            buildAnimal3D();
+            document.getElementById('salonMessage').textContent = '🎲 짜잔! 3D 숲속 요정이 골라준 랜덤 코디야!';
+        }
+
+        function clearStyle() {
+            salonState.accessory = 'none';
+            salonState.makeup = 'none';
+            salonState.outfit = 'none';
+            renderItemButtons();
+            salonBounce = 1;
+            buildAnimal3D();
+            document.getElementById('salonMessage').textContent = '🧼 깔끔하게 기본 모습으로 돌아왔어!';
+        }
+
+        function completeStyle() {
+            const names = { cat: '고양이', rabbit: '토끼', bear: '곰돌이', fox: '여우' };
+            document.getElementById('salonMessage').textContent = `✨ 우와! 360도 어디서 봐도 완벽한 3D ${names[salonState.animal]} 완성! 💖`;
+            salonBounce = 1.4;
+            triggerCelebration();
+        }
+
+        /* ==========================================
+           7. 미니게임 2: 3D 숲속 아지트 인테리어
+        ========================================== */
+        const houseState = {
+            category: 'wall',
+            wall: 'forest',
+            furniture: 'bed',
+            table: 'snack',
+            decor: 'plant'
+        };
+
+        const houseItems = {
+            wall: [
+                { id: 'forest', name: '햇살숲속벽', icon: '☀️' },
+                { id: 'night', name: '별빛밤하늘', icon: '🌙' },
+                { id: 'pink', name: '딸기우유방', icon: '🌸' },
+                { id: 'wood', name: '통나무오두막', icon: '🪵' }
+            ],
+            furniture: [
+                { id: 'none', name: '비워두기', icon: '🚫' },
+                { id: 'bed', name: '구름침대', icon: '🛏️' },
+                { id: 'sofa', name: '말랑소파', icon: '🛋️' },
+                { id: 'tent', name: '아지트텐트', icon: '⛺' }
+            ],
+            table: [
+                { id: 'none', name: '비워두기', icon: '🚫' },
+                { id: 'snack', name: '딸기케이크상', icon: '🍰' },
+                { id: 'gem', name: '보석진열대', icon: '💎' },
+                { id: 'book', name: '동화책책상', icon: '📚' }
+            ],
+            decor: [
+                { id: 'none', name: '비워두기', icon: '🚫' },
+                { id: 'plant', name: '화분&꽃러그', icon: '🪴' },
+                { id: 'cat', name: '낮잠고양이', icon: '🐱' },
+                { id: 'lamp', name: '버섯무드등', icon: '🍄' }
+            ]
+        };
+
+        let houseScene, houseCamera, houseRenderer, roomRoot, houseDragging = false, houseBounce = 0;
+
+        function initHouse3D() {
+            const container = document.getElementById('house3dContainer');
+            houseScene = new THREE.Scene();
+            houseCamera = new THREE.PerspectiveCamera(42, container.clientWidth / container.clientHeight, 0.1, 50);
+            houseCamera.position.set(0, 4.6, 6.4);
+            houseCamera.lookAt(0, 0.8, 0);
+
+            houseRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            houseRenderer.setSize(container.clientWidth, container.clientHeight);
+            houseRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(houseRenderer.domElement);
+
+            houseScene.add(new THREE.AmbientLight(0xffffff, 0.75));
+            const sunLight = new THREE.DirectionalLight(0xfffde7, 0.85);
+            sunLight.position.set(5, 9, 6);
+            houseScene.add(sunLight);
+
+            roomRoot = new THREE.Group();
+            roomRoot.rotation.y = -0.35;
+            houseScene.add(roomRoot);
+
+            attachDragRotation(container, roomRoot, (d) => { houseDragging = d; });
+            buildHouse3D();
+        }
+
+        function buildHouse3D() {
+            while (roomRoot.children.length > 0) {
+                roomRoot.remove(roomRoot.children[0]);
+            }
+
+            // 테마별 벽지 & 바닥 색상
+            const themes = {
+                forest: { wall: 0xc8e6c9, floor: 0xd7ccc8, trim: 0x81c784 },
+                night:  { wall: 0x3949ab, floor: 0x5d4037, trim: 0xffd54f },
+                pink:   { wall: 0xf8bbd0, floor: 0xffe0b2, trim: 0xf06292 },
+                wood:   { wall: 0xa1887f, floor: 0x8d6e63, trim: 0x5d4037 }
+            };
+            const t = themes[houseState.wall];
+
+            // 1. 3D 아이소메트릭 방 바닥 & 두 벽면
+            const floor = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.25, 4.2), createToonMaterial(t.floor));
+            floor.position.y = -0.12;
+            roomRoot.add(floor);
+
+            const backWall = new THREE.Mesh(new THREE.BoxGeometry(4.2, 2.4, 0.2), createToonMaterial(t.wall));
+            backWall.position.set(0, 1.1, -2.0);
+            roomRoot.add(backWall);
+
+            const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.4, 4.2), createToonMaterial(t.wall));
+            leftWall.position.set(-2.0, 1.1, 0);
+            roomRoot.add(leftWall);
+
+            // 창문 장식
+            const winFrame = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.1, 0.26), createToonMaterial(t.trim));
+            winFrame.position.set(0.3, 1.35, -1.98);
+            roomRoot.add(winFrame);
+            const winGlass = new THREE.Mesh(
+                new THREE.BoxGeometry(1.05, 0.85, 0.28),
+                createToonMaterial(houseState.wall === 'night' ? 0x1a237e : 0xb3e5fc, 90)
+            );
+            winGlass.position.set(0.3, 1.35, -1.97);
+            roomRoot.add(winGlass);
+
+            // 2. 큰 가구 (왼쪽 벽 근처 배치)
+            if (houseState.furniture === 'bed') {
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.35, 2.1), createToonMaterial(0x8d6e63));
+                frame.position.set(-1.1, 0.18, -0.6);
+                roomRoot.add(frame);
+
+                const mattress = new THREE.Mesh(new THREE.BoxGeometry(1.26, 0.25, 1.96), createToonMaterial(0xffffff));
+                mattress.position.set(-1.1, 0.42, -0.6);
+                roomRoot.add(mattress);
+
+                const blanket = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.28, 1.25), createToonMaterial(0x4fc3f7));
+                blanket.position.set(-1.1, 0.44, -0.25);
+                roomRoot.add(blanket);
+
+                const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.18, 0.42), createToonMaterial(0xfff59d));
+                pillow.position.set(-1.1, 0.58, -1.3);
+                roomRoot.add(pillow);
+            } else if (houseState.furniture === 'sofa') {
+                const base = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.45, 2.0), createToonMaterial(0xff8a80));
+                base.position.set(-1.2, 0.22, -0.5);
+                roomRoot.add(base);
+
+                const back = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.9, 2.0), createToonMaterial(0xff5252));
+                back.position.set(-1.65, 0.45, -0.5);
+                roomRoot.add(back);
+            } else if (houseState.furniture === 'tent') {
+                const tent = new THREE.Mesh(new THREE.ConeGeometry(1.15, 1.75, 4), createToonMaterial(0xfff59d));
+                tent.position.set(-1.05, 0.88, -0.85);
+                tent.rotation.y = Math.PI / 4;
+                roomRoot.add(tent);
+            }
+
+            // 3. 테이블 & 보석/케이크 (오른쪽 영역 배치)
+            if (houseState.table !== 'none') {
+                const tableTop = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.75, 0.75, 0.12, 24),
+                    createToonMaterial(houseState.table === 'gem' ? 0xb3e5fc : 0xa1887f)
+                );
+                tableTop.position.set(1.05, 0.65, -0.75);
+                roomRoot.add(tableTop);
+
+                const tableLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 0.65, 16), createToonMaterial(0x5d4037));
+                tableLeg.position.set(1.05, 0.32, -0.75);
+                roomRoot.add(tableLeg);
+
+                if (houseState.table === 'snack') {
+                    // 3D 딸기 생크림 케이크
+                    const cake = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.25, 20), createToonMaterial(0xffffff));
+                    cake.position.set(1.05, 0.82, -0.75);
+                    roomRoot.add(cake);
+                    const berry = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 12), createToonMaterial(0xff1744));
+                    berry.position.set(1.05, 0.98, -0.75);
+                    roomRoot.add(berry);
+                } else if (houseState.table === 'gem') {
+                    // 3D 대형 다이아몬드 보석
+                    const diamond = new THREE.Mesh(
+                        new THREE.OctahedronGeometry(0.32, 0),
+                        createToonMaterial(0x00e5ff, 110)
+                    );
+                    diamond.position.set(1.05, 1.02, -0.75);
+                    roomRoot.add(diamond);
+                } else if (houseState.table === 'book') {
+                    const book1 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 0.38), createToonMaterial(0xef5350));
+                    book1.position.set(1.05, 0.76, -0.75);
+                    roomRoot.add(book1);
+                    const book2 = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.1, 0.34), createToonMaterial(0xffca28));
+                    book2.position.set(1.05, 0.86, -0.75);
+                    book2.rotation.y = 0.25;
+                    roomRoot.add(book2);
+                }
+            }
+
+            // 4. 소품 & 러그 (중앙 앞쪽 배치)
+            if (houseState.decor !== 'none') {
+                const rugCol = houseState.decor === 'plant' ? 0xa5d6a7 : houseState.decor === 'cat' ? 0xffcc80 : 0xce93d8;
+                const rug = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.04, 32), createToonMaterial(rugCol));
+                rug.position.set(0.35, 0.02, 0.85);
+                roomRoot.add(rug);
+
+                if (houseState.decor === 'plant') {
+                    const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.2, 0.35, 16), createToonMaterial(0xd84315));
+                    pot.position.set(0.35, 0.2, 0.85);
+                    roomRoot.add(pot);
+                    const foliage = new THREE.Mesh(new THREE.DodecahedronGeometry(0.36, 1), createToonMaterial(0x43a047));
+                    foliage.position.set(0.35, 0.56, 0.85);
+                    roomRoot.add(foliage);
+                } else if (houseState.decor === 'cat') {
+                    const catBody = new THREE.Mesh(new THREE.SphereGeometry(0.34, 18, 18), createToonMaterial(0xfff3e0));
+                    catBody.scale.set(1.2, 0.8, 1.0);
+                    catBody.position.set(0.35, 0.25, 0.85);
+                    roomRoot.add(catBody);
+                    [-0.15, 0.15].forEach(ex => {
+                        const ear = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.2, 10), createToonMaterial(0xffcc80));
+                        ear.position.set(0.35 + ex, 0.55, 0.85);
+                        roomRoot.add(ear);
+                    });
+                } else if (houseState.decor === 'lamp') {
+                    const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.4, 16), createToonMaterial(0xfff8e1));
+                    stalk.position.set(0.35, 0.22, 0.85);
+                    roomRoot.add(stalk);
+                    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.36, 18, 14, 0, Math.PI * 2, 0, Math.PI / 2), createToonMaterial(0xff5252, 80));
+                    cap.position.set(0.35, 0.38, 0.85);
+                    roomRoot.add(cap);
+                }
+            }
+        }
+
+        function switchHouseCategory(cat, btn) {
+            houseState.category = cat;
+            document.querySelectorAll('.house-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderHouseButtons();
+        }
+
+        function equipHouseItem(itemId) {
+            houseState[houseState.category] = itemId;
+            renderHouseButtons();
+            houseBounce = 1;
+            buildHouse3D();
+        }
+
+        function renderHouseButtons() {
+            const grid = document.getElementById('houseItemGrid');
+            const items = houseItems[houseState.category];
+            const currentSelected = houseState[houseState.category];
+            grid.innerHTML = items.map(item => `
+                <button class="house-item-btn ${currentSelected === item.id ? 'selected' : ''}" onclick="equipHouseItem('${item.id}')">
+                    <span class="item-icon">${item.icon}</span>
+                    <span>${item.name}</span>
+                </button>
+            `).join('');
+        }
+
+        function randomHouse() {
+            const pick = (arr) => arr[Math.floor(Math.random() * arr.length)].id;
+            houseState.wall = pick(houseItems.wall);
+            houseState.furniture = pick(houseItems.furniture);
+            houseState.table = pick(houseItems.table);
+            houseState.decor = pick(houseItems.decor);
+            renderHouseButtons();
+            houseBounce = 1;
+            buildHouse3D();
+            document.getElementById('houseMessage').textContent = '🎲 뿅! 3D 다람쥐 건축가가 지어준 비밀 아지트야!';
+        }
+
+        function clearHouse() {
+            houseState.wall = 'forest';
+            houseState.furniture = 'none';
+            houseState.table = 'none';
+            houseState.decor = 'none';
+            renderHouseButtons();
+            houseBounce = 1;
+            buildHouse3D();
+            document.getElementById('houseMessage').textContent = '🧹 방을 깨끗하게 비웠어! 입체 가구로 다시 채워보자!';
+        }
+
+        function completeHouse() {
+            document.getElementById('houseMessage').textContent = '🏡 우와! 입체감 넘치는 세상에서 제일 포근한 ^.^의 3D 아지트 완성! ✨';
+            houseBounce = 1.4;
+            triggerCelebration();
+        }
+
+        /* ==========================================
+           8. 통합 3D 애니메이션 루프 & 리사이즈 처리
+        ========================================== */
+        const clock = new THREE.Clock();
+
+        function animateAll3D() {
+            requestAnimationFrame(animateAll3D);
+            const elapsed = clock.getElapsedTime();
+
+            // 1. 배경 3D 숲속 오브젝트 부유 애니메이션
+            bgFloaters.forEach((item, i) => {
+                item.mesh.position.y = item.baseY + Math.sin(elapsed * item.speed + i) * 0.25;
+                item.mesh.rotation.y += item.rot;
+            });
+            bgRenderer.render(bgScene, bgCamera);
+
+            // 2. 뷰티 살롱 3D 동물 애니메이션
+            if (animalRoot) {
+                if (!salonDragging) {
+                    animalRoot.rotation.y += 0.008;
+                }
+                if (salonBounce > 0.01) {
+                    const s = 1 + Math.sin(salonBounce * Math.PI) * 0.14;
+                    animalRoot.scale.set(s, s, s);
+                    salonBounce *= 0.88;
+                } else {
+                    animalRoot.scale.set(1, 1, 1);
+                }
+                animalRoot.position.y = Math.sin(elapsed * 2.5) * 0.05;
+                salonRenderer.render(salonScene, salonCamera);
+            }
+
+            // 3. 아지트 인테리어 3D 방 애니메이션
+            if (roomRoot) {
+                if (!houseDragging) {
+                    roomRoot.rotation.y = -0.35 + Math.sin(elapsed * 0.7) * 0.22;
+                }
+                if (houseBounce > 0.01) {
+                    const s = 1 + Math.sin(houseBounce * Math.PI) * 0.08;
+                    roomRoot.scale.set(s, s, s);
+                    houseBounce *= 0.88;
+                } else {
+                    roomRoot.scale.set(1, 1, 1);
+                }
+                houseRenderer.render(houseScene, houseCamera);
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            if (bgRenderer) {
+                bgCamera.aspect = window.innerWidth / window.innerHeight;
+                bgCamera.updateProjectionMatrix();
+                bgRenderer.setSize(window.innerWidth, window.innerHeight);
+            }
+            const sBox = document.getElementById('salon3dContainer');
+            if (salonRenderer && sBox) {
+                salonCamera.aspect = sBox.clientWidth / sBox.clientHeight;
+                salonCamera.updateProjectionMatrix();
+                salonRenderer.setSize(sBox.clientWidth, sBox.clientHeight);
+            }
+            const hBox = document.getElementById('house3dContainer');
+            if (houseRenderer && hBox) {
+                houseCamera.aspect = hBox.clientWidth / hBox.clientHeight;
+                houseCamera.updateProjectionMatrix();
+                houseRenderer.setSize(hBox.clientWidth, hBox.clientHeight);
+            }
+        });
+
+        window.onload = function () {
+            initBg3D();
+            initSalon3D();
+            initHouse3D();
+            renderItemButtons();
+            renderHouseButtons();
+            animateAll3D();
+        };
+    </script>
+</body>
+</html>
